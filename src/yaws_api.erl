@@ -360,7 +360,12 @@ do_header(Head) ->
         {value, {_,"form-data"++Line}} ->
             Parameters = parse_arg_line(Line),
             {value, {_,Name}} = lists:keysearch(name, 1, Parameters),
-            {Name, Parameters};
+            case lists:keysearch("content-type", 1, Header) of
+              {value, {_, ContentType}} ->
+                {Name, [{content_type, ContentType} | Parameters]};
+              _ ->
+                {Name, Parameters}
+            end;
         _ ->
             {Header}
     end.
