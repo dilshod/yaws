@@ -7,12 +7,15 @@ complete_parse() ->
     Data = list_to_binary(
 	     ["--!!!\r\n",
 	      "Content-Disposition: form-data; name=\"abc123\"; "
-	      ++ "filename=\"abc123\"\r\n\r\n",
+	      ++ "filename=\"abc123\"\r\n"
+	      ++ "Content-Type: text/plain\r\n"
+	      ++ "Test-Header: sampledata\r\n\r\n",
 	      "sometext\n\r\n--!!!--\r\n"]),
     yaws_api:parse_multipart_post(mk_arg(Data)).
 
 complete_parse_test() ->
-    {result,[{head,{"abc123", [{filename,"abc123"},{name,"abc123"}]}},
+    {result,[{head,{"abc123", [{filename,"abc123"},{name,"abc123"},
+         {"content-disposition",_},{"content-type","text/plain"},{"test-header","sampledata"}]}},
 	     {body,"sometext\n"}]} = complete_parse().
 
 
@@ -31,10 +34,10 @@ incomplete_body_test() ->
 	       "sometext\n\r\n--!!!--\r\n"]),
     A2 = A1#arg{cont = Cont, clidata = Data2},
     {result, Res2} = yaws_api:parse_multipart_post(A2),
-    {[{head,{"abc123",[{filename,"abc123"},{name,"abc123"}]}},
+    {[{head,{"abc123",[{filename,"abc123"},{name,"abc123"},{"content-disposition",_}]}},
       {part_body,"some"}],
      [{body,"text\n"},
-      {head,{"def456",[{filename,"def456"},{name,"def456"}]}},
+      {head,{"def456",[{filename,"def456"},{name,"def456"},{"content-disposition",_}]}},
       {body,"sometext\n"}]} = {Res1, Res2}.
 
 incomplete_head_test() ->
@@ -52,9 +55,9 @@ incomplete_head_test() ->
 	       "sometext\n\r\n--!!!--\r\n"]),
     A2 = A1#arg{cont = Cont, clidata = Data2},
     {result, Res2} = yaws_api:parse_multipart_post(A2),
-    {[{head,{"abc123",[{filename,"abc123"},{name,"abc123"}]}},
+    {[{head,{"abc123",[{filename,"abc123"},{name,"abc123"},{"content-disposition",_}]}},
       {body,"sometext\n"}],
-     [{head,{"ghi789",[{filename,"ghi789"},{name,"ghi789"}]}},
+     [{head,{"ghi789",[{filename,"ghi789"},{name,"ghi789"},{"content-disposition",_}]}},
       {body,"sometext\n"}]} = {Res1, Res2}.
 
 
